@@ -1,38 +1,71 @@
-import { User } from "../models/user.model";
+import { User } from "../models/user.model.js";
+import fs from 'fs/promises'
 
 export const createUser = async (req, res) => {
     try {
-        const {name,eid} = req.body
-        const file = req.file
-        if(!name || !email || !file){
-            return res.status(400).json({
-                message: 'Name, email, and image file are required.',
-                success: false
+            const { name, eid } = req.body;
+            const imagePath = req.file.path;
+    
+            // Read the image file and convert to base64
+            const imageBuffer = await fs.readFile(imagePath);
+            const encodedImage = imageBuffer.toString('base64');
+    
+            // Create new user with base64 image
+            const user = new User({
+                name,
+                eid,
+                encodedImage
+            });
+    
+            await user.save();
+    
+            // Delete the temporary uploaded file
+            await fs.unlink(imagePath);
+    
+            res.json({ 
+                success: true, 
+                message: 'User registered successfully',
+                user: {
+                    name: user.name,
+                    eid: user.eid,
+                    createdAt: user.createdAt
+                }
+            });
+        } catch (error) {
+            console.error('Registration error:', error);
+            // Clean up the uploaded file if it exists
+            if (req.file) {
+                await fs.unlink(req.file.path).catch(console.error);
+            }
+            res.status(500).json({ 
+                success: false, 
+                message: 'Error registering user',
+                error: error.message 
             });
         }
+    };
 
-        const existingUser = await User.findOne({eid});
-        if(existingUser){
-            return res.status(400).json({
-                message: 'User already exists with this eid.',
-                success: false
-            });
-        }
 
-        const encodedImage = file.buffer.toString('base64')
-        const user = new User({
-            name,
-            eid,
-            encodedImage
-        })
-
-        await user.save()
-
-        return res.status(201).json({
-            message: 'User created successfully.',
-            success: true
-        });
+export const fetchUsers = async (req, res) => {
+    try {
+        const users = await User.find();
+        res.json(users);
     } catch (error) {
-        console.log(error);
+        res.status(500).json({ success: false, message: "Error fetching users", error: error.message });
     }
-}
+};
+
+let receivedData = {}; // Store received data from Python
+
+// Receive data from Python script
+export const receivePythonData = (req, res) => {
+    receivedData = req.body;
+    console.log("Data received:", receivedData);
+    res.status(200).json({ message: "Data received successfully" });
+};
+
+// API to return received data
+export const fetchReceivedData = (req, res) => {
+    res.status(200).json({ data: receivedData, success: true });
+};
+

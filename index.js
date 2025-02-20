@@ -6,6 +6,7 @@ import multer from 'multer'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import connectDB from "./utils/db.js"
+import userRoute from "./routes/user.route.js"
 import { User } from "./models/user.model.js"
 import fs from 'fs/promises'
 
@@ -55,67 +56,8 @@ app.get('/register', (req, res) => {
     res.render('form');
 });
 
-app.post('/register', upload.single('image'), async (req, res) => {
-    try {
-        const { name, eid } = req.body;
-        const imagePath = req.file.path;
+app.use("/api/v1", userRoute);
 
-        // Read the image file and convert to base64
-        const imageBuffer = await fs.readFile(imagePath);
-        const encodedImage = imageBuffer.toString('base64');
-
-        // Create new user with base64 image
-        const user = new User({
-            name,
-            eid,
-            encodedImage
-        });
-
-        await user.save();
-
-        // Delete the temporary uploaded file
-        await fs.unlink(imagePath);
-
-        res.json({ 
-            success: true, 
-            message: 'User registered successfully',
-            user: {
-                name: user.name,
-                eid: user.eid,
-                createdAt: user.createdAt
-            }
-        });
-    } catch (error) {
-        console.error('Registration error:', error);
-        // Clean up the uploaded file if it exists
-        if (req.file) {
-            await fs.unlink(req.file.path).catch(console.error);
-        }
-        res.status(500).json({ 
-            success: false, 
-            message: 'Error registering user',
-            error: error.message 
-        });
-    }
-});
-
-//receive data from python script
-app.post("/python",(req,res)=>{
-    receivedData = req.body;
-    console.log("Data received:", receivedData);
-    res.status(200).json({
-        message: "Data received successfully"
-    })
-})
-// Fetch data from MongoDB 
-app.get("/fetch-data", async (req, res) => {
-    try {
-      const data = await User.find();
-      res.json(data);
-    } catch (error) {
-      res.status(500).json({ error: "Error fetching data" });
-    }
-  });
 //api to mark attendance
 app.get("/api",(req,res)=>{
     res.status(200).json({
