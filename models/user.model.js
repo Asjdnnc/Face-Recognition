@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    attendance:[{
+        date: { type: Date, default: Date.now },
+        status: { type: String, enum: ["Present", "Absent"], default: "Absent" }
+    }],
     encodedImage: {
         type: String,
         required: true

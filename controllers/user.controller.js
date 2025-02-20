@@ -21,16 +21,16 @@ export const createUser = async (req, res) => {
     
             // Delete the temporary uploaded file
             await fs.unlink(imagePath);
-    
-            res.json({ 
-                success: true, 
-                message: 'User registered successfully',
-                user: {
-                    name: user.name,
-                    eid: user.eid,
-                    createdAt: user.createdAt
-                }
-            });
+            res.redirect('/api/v1/users');
+            // res.json({ 
+            //     success: true, 
+            //     message: 'User registered successfully',
+            //     user: {
+            //         name: user.name,
+            //         eid: user.eid,
+            //         createdAt: user.createdAt
+            //     }
+            //});
         } catch (error) {
             console.error('Registration error:', error);
             // Clean up the uploaded file if it exists
@@ -93,5 +93,13 @@ export const updateAttendance = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+}
+export const getUserList = async (req, res) => {
+    try {
+        const users = await User.find();
+        res.render('userList', { users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error fetching users", error: error.message });
     }
 }
