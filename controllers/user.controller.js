@@ -69,3 +69,29 @@ export const fetchReceivedData = (req, res) => {
     res.status(200).json({ data: receivedData, success: true });
 };
 
+export const updateAttendance = async (req, res) => {
+    try {
+        const { eid, isMatched } = req.body;
+
+        if (!eid) {
+            return res.status(400).json({ success: false, message: "EID is required" });
+        }
+
+        const user = await User.findOne({ eid });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        if (isMatched) {
+            user.attendance.push({ date: new Date(), status: "Present" });
+            await user.save();
+            return res.json({ success: true, message: "Attendance marked" });
+        } else {
+            return res.json({ success: false, message: "Face did not match, attendance not marked" });
+        }
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
