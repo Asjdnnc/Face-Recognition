@@ -3,9 +3,24 @@ import dlib
 import face_recognition
 import numpy as np
 import time
+import logging
+import winsound  # For beep sound on Windows
 
-from userfetch import fetch_users  # Import the fetch_users function from userfetch.py
-from update import update_attendance  # Import the attendance update function
+from userfetch import fetch_users   # Fetch user details and encodings.
+from update import update_attendance  # Update attendance function.
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+video_source = 0  # Current video source; can be replaced with a URI if needed.
+face_predictor = r"shape_predictor_68_face_landmarks.dat" #shape_predictor_68_face_landmarks.dat file must be in folder 
+
+# Configuration parameters.
+EAR_THRESHOLD = 0.23          # Threshold below which eyes are considered closed.
+REQUIRED_MATCHES = 2          # Consecutive matching frames required to lock onto a candidate.
+CHECK_INTERVAL = 2            # Time window (seconds) to monitor for blink events.
+BLINKS_REQUIRED = 1           # Number of blink events required for liveness confirmation.
+BLINK_RANGE_THRESHOLD = 0.15  # (Not used in this approach.)
+SPOOF_THRESHOLD = 4           # Number of consecutive spoof detections before sleeping.
+SLEEP_DURATION = 2            # Sleep duration in  seconds.
 
 def get_eye_aspect_ratio(eye):
     """
@@ -18,50 +33,54 @@ def get_eye_aspect_ratio(eye):
 
 def check_attendance(user_db, tolerance=0.5):
     """
-    Capture a live face from the webcam, compare it against stored encodings,
-    perform liveness detection (blink detection), and mark attendance for
-    matching users. Once a user's attendance is marked, they will not be rechecked.
+    Capture a live face from the webcam, perform recognition and a liveness check (blink detection),
+    and mark attendance only if a valid blink event is detected.
+    
+    Additional features:
+      - Beep sound is played when a live face is confirmed.
+      - If spoofing is detected for more than SPOOF_THRESHOLD consecutive times,
+        the system goes to sleep for SLEEP_DURATION seconds before restarting.
     """
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(video_source)
     print("Starting attendance capture. Press 'q' to exit.")
-    
-    # Initialize dlib's face detector and shape predictor for liveness detection.
+
+    # Enlarge the display window (does not change processing resolution).
+    cv2.namedWindow("Attendance System", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Attendance System", 1280, 720)
+
+    # Initialize dlib's face detector and shape predictor.
     detector = dlib.get_frontal_face_detector()
-    predictor = dlib.shape_predictor(r"c:\Users\Prakhar\Desktop\codes\python\opencv\otask1c\shape_predictor_68_face_landmarks.dat")
-    
-    # Parameters for blink detection.
-    blink_count = 0
-    start_time = time.time()
-    EAR_THRESHOLD = 0.23    # Adjusted threshold for blink detection
-    BLINKS_REQUIRED = 2     # Required number of blinks within the check interval
-    CHECK_INTERVAL = 2      # Interval (in seconds) to evaluate blink count
-    match_counts = {}       # Dictionary to store match count for each user
-    REQUIRED_MATCHES = 2    # Number of consecutive matches needed for confirmation
-    
-    # Dictionary to track which users have already been marked attended.
-    attended_users = {}
+    predictor = dlib.shape_predictor(face_predictor)
+
+    candidate = None              # Currently matched user id.
+    candidate_data = None         # Holds candidate tracking info.
+    attended_users = set()        # User IDs already marked as attended.
+    consecutive_spoof_count = 0   # Counter for consecutive spoof detections.
+
+    frame_skip = 2                # Process every nth frame.
+    frame_count = 0
 
     while True:
         ret, frame = cap.read()
-        frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
         if not ret:
             break
 
-        # Convert frame to RGB and grayscale.
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frame_count += 1
+        if frame_count % frame_skip != 0:
+            continue
 
-        # Compute live face encoding using face_recognition (assumes one face per frame).
+        frame_proc = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+        rgb_frame = cv2.cvtColor(frame_proc, cv2.COLOR_BGR2RGB)
+        gray = cv2.cvtColor(frame_proc, cv2.COLOR_BGR2GRAY)
+
+        # Compute live face encoding (assumes one face per frame).
         live_encodings = face_recognition.face_encodings(rgb_frame)
         if live_encodings:
             live_encoding = live_encodings[0]
-            matched_user = None
-            matched_user_id = None
+            best_match_id = None
+            best_match_data = None
             min_distance = float("inf")
-            
-            # Compare the live encoding against each stored user's encoding.
             for user_id, data in user_db.items():
-                # Skip users already marked as attended.
                 if user_id in attended_users:
                     continue
                 stored_encoding = data.get("encoding")
@@ -70,63 +89,78 @@ def check_attendance(user_db, tolerance=0.5):
                 distance = np.linalg.norm(np.array(stored_encoding) - np.array(live_encoding))
                 if distance < min_distance:
                     min_distance = distance
-                    matched_user = data
-                    matched_user_id = user_id
+                    best_match_id = user_id
+                    best_match_data = data
 
-            if min_distance < 0.5 and matched_user is not None:
-                # Increase confirmation count for the matched user.
-                if matched_user_id not in match_counts:
-                    match_counts[matched_user_id] = 1
-                else:
-                    match_counts[matched_user_id] += 1
-                
-                if match_counts[matched_user_id] >= REQUIRED_MATCHES:
-                    print(f"Matched user: {matched_user['name']} with distance: {min_distance}")
-                    # Perform liveness check using blink detection.
-                    faces = detector(gray)
-                    if faces:
-                        for face in faces:
-                            landmarks = predictor(gray, face)
-                            left_eye = [(landmarks.part(n).x, landmarks.part(n).y) for n in range(36, 42)]
-                            right_eye = [(landmarks.part(n).x, landmarks.part(n).y) for n in range(42, 48)]
-                            left_ear = get_eye_aspect_ratio(left_eye)
-                            right_ear = get_eye_aspect_ratio(right_eye)
-                            avg_ear = (left_ear + right_ear) / 2.0
+            if best_match_id is not None and min_distance < tolerance:
+                logging.info(f"Current match: {best_match_data['name']} with distance {min_distance:.4f}")
 
-                            if avg_ear < EAR_THRESHOLD:  # A blink is detected.
-                                blink_count += 1
-                                time.sleep(0.1)  # Brief pause to avoid counting a single blink multiple times.
-                        
-                        # Check if the number of blinks in the CHECK_INTERVAL is sufficient.
-                        elapsed_time = time.time() - start_time
-                        if elapsed_time > CHECK_INTERVAL:
-                            if blink_count >= BLINKS_REQUIRED:
-                                cv2.putText(frame, f"Welcome, {matched_user['name']}!", (50, 50),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                                print(f"Attendance marked for {matched_user['name']} (ID: {matched_user_id})")
-                                # Mark the user as attended so they won't be rechecked.
-                                attended_users[matched_user_id] = True
-                                # Send attendance data to updatedata.py.
-                                update_attendance(matched_user_id, attendance=True)
-                            else:
-                                cv2.putText(frame, "Spoofing Detected", (50, 50),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                                print("Spoofing detected: Fake Face")
-                            # Reset blink count and timer.
-                            blink_count = 0
-                            start_time = time.time()
-                    else:
-                        cv2.putText(frame, "No face for liveness check", (50, 50),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                # Lock candidate tracking.
+                if candidate == best_match_id:
+                    candidate_data["match_count"] += 1
                 else:
-                    print(f"Pending confirmation: {matched_user['name']} ({match_counts[matched_user_id]}/{REQUIRED_MATCHES})")
+                    candidate = best_match_id
+                    candidate_data = {
+                        "match_count": 1,
+                        "blink_count": 0,          # Count of detected blink events.
+                        "eyes_closed": False,      # Current eye state.
+                        "start_time": time.time()  # Start time for monitoring.
+                    }
+                cv2.putText(frame, f"Pending: {best_match_data['name']} ({candidate_data['match_count']}/{REQUIRED_MATCHES})", 
+                            (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+
+                if candidate_data["match_count"] >= REQUIRED_MATCHES:
+                    # Use face_recognition to get face location.
+                    face_locations = face_recognition.face_locations(rgb_frame)
+                    if face_locations:
+                        top, right, bottom, left = face_locations[0]
+                        rect = dlib.rectangle(left, top, right, bottom)
+                        landmarks = predictor(gray, rect)
+                        left_eye = [(landmarks.part(n).x, landmarks.part(n).y) for n in range(36, 42)]
+                        right_eye = [(landmarks.part(n).x, landmarks.part(n).y) for n in range(42, 48)]
+                        ear = (get_eye_aspect_ratio(left_eye) + get_eye_aspect_ratio(right_eye)) / 2.0
+                        cv2.putText(frame, f"EAR: {ear:.2f}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
+
+                        # Blink event detection:
+                        if ear < EAR_THRESHOLD:
+                            candidate_data["eyes_closed"] = True
+                        else:
+                            if candidate_data["eyes_closed"]:
+                                candidate_data["blink_count"] += 1
+                                logging.info(f"Blink detected for {best_match_data['name']}: total blinks {candidate_data['blink_count']}")
+                                candidate_data["eyes_closed"] = False
+
+                    # After CHECK_INTERVAL seconds, decide on liveness.
+                    if time.time() - candidate_data["start_time"] > CHECK_INTERVAL:
+                        if candidate_data["blink_count"] >= BLINKS_REQUIRED:
+                            cv2.putText(frame, f"Welcome, {best_match_data['name']}!", (50, 80),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                            logging.info(f"Attendance marked for {best_match_data['name']} (ID: {candidate})")
+                            attended_users.add(candidate)
+                            update_attendance(candidate, attendance=True)
+                            # Play beep sound.
+                            winsound.Beep(1000, 300)
+                            winsound.Beep(1000, 300)
+                            consecutive_spoof_count = 0  # Reset spoof counter on success.
+                        else:
+                            cv2.putText(frame, "Spoofing Detected", (50, 80),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                            logging.info("Spoofing detected: Fake Face")
+                            consecutive_spoof_count += 1
+                            if consecutive_spoof_count >= SPOOF_THRESHOLD:
+                                logging.info("Too many spoof detections, sleeping for 2 seconds...")
+                                time.sleep(SLEEP_DURATION)
+                                consecutive_spoof_count = 0
+                        candidate = None
+                        candidate_data = None
             else:
-                match_counts.clear()
+                candidate = None
+                candidate_data = None
                 cv2.putText(frame, "Face not recognized", (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                cv2.imshow("Attendance System", frame)
-                continue
         else:
+            candidate = None
+            candidate_data = None
             cv2.putText(frame, "No face detected", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
@@ -138,13 +172,5 @@ def check_attendance(user_db, tolerance=0.5):
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    # Fetch user details (simulate database retrieval and enrollment).
     users = fetch_users()
-    
-    # Print user details and encoding status.
-    for uid, details in users.items():
-        status = "Encoding exists" if details["encoding"] is not None else "No encoding"
-        print(f"User ID: {uid}, Name: {details['name']}, {status}")
-    
-    # Start the attendance checking process with integrated liveness check.
     check_attendance(users)
