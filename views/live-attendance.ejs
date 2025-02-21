@@ -239,6 +239,24 @@
                 justify-content: center;
             }
         }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .blink-text {
+            animation: blink 2s infinite;
+            color: red;
+            font-size: 30px;
+            margin-top: 0;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -247,7 +265,7 @@
             <h1>Live Attendance</h1>
             <p class="subtitle">Face Recognition System</p>
         </div>
-        
+        <h1 class="blink-text">Coming soon ...</h1>
         <div class="camera-container">
             <a href="/api/v1/users" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
