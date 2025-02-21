@@ -373,10 +373,10 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    detectionResult.innerHTML = <i class="fas fa-check-circle"></i> ${data.message};
+                    detectionResult.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}`;
                     detectionResult.className = 'detection-result success';
                 } else {
-                    detectionResult.innerHTML = <i class="fas fa-times-circle"></i> ${data.message};
+                    detectionResult.innerHTML = `<i class="fas fa-times-circle"></i> ${data.message}`;
                     detectionResult.className = 'detection-result error';
                 }
 
@@ -398,4 +398,4 @@
         });
     </script>
 </body>
-</html>
+</html> 

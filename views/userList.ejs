@@ -412,10 +412,10 @@
                             <p class="time-info">No attendance records</p>
                         <% } %>
                         <div class="user-actions">
-                            <button class="view-attendance-btn" onclick="event.stopPropagation(); showAttendance(<%= user.name %>, <%= JSON.stringify(user.attendance) %>)">
+                            <button class="view-attendance-btn" onclick="event.stopPropagation(); showAttendance(`<%= user.name %>`, <%= JSON.stringify(user.attendance) %>)">
                                 View Attendance
                             </button>
-                            <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(<%= user._id %>, <%= user.name %>)">
+                            <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(`<%= user._id %>`, `<%= user.name %>`)">
                                 Delete
                             </button>
                         </div>
@@ -452,7 +452,7 @@
             const modalTitle = document.getElementById('modalTitle');
             const attendanceList = document.getElementById('attendanceList');
 
-            modalTitle.textContent = ${userName}'s Attendance History;
+            modalTitle.textContent = `${userName}'s Attendance History`;
             
             attendance.sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -489,7 +489,7 @@
         function deleteUser() {
             if (!deleteUserId) return;
             
-            fetch(/api/v1/delete-user/${deleteUserId}, {
+            fetch(`/api/v1/delete-user/${deleteUserId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
