@@ -454,8 +454,8 @@
                                         const attendanceDate = new Date(lastAttendance.date);
                                         
                                         if (!isNaN(attendanceDate)) {
-                                            // Force UTC to avoid timezone issues
-                                            const utcDate = new Date(attendanceDate.getTime() + attendanceDate.getTimezoneOffset() * 60000);
+                                            // Convert to IST (UTC+5:30)
+                                            const istDate = new Date(attendanceDate.getTime());
                                             const options = {
                                                 year: 'numeric',
                                                 month: 'short',
@@ -463,10 +463,10 @@
                                                 hour: '2-digit',
                                                 minute: '2-digit',
                                                 hour12: true,
-                                                timeZone: 'UTC'
+                                                timeZone: 'Asia/Kolkata'  // Use Indian timezone
                                             };
                                             
-                                            const formattedDate = utcDate.toLocaleString('en-US', options);
+                                            const formattedDate = istDate.toLocaleString('en-US', options);
                                 %>
                                     <%= formattedDate %>
                                 <% 
@@ -534,9 +534,9 @@
                             return '<div class="attendance-item"><div>Invalid Date</div></div>';
                         }
                         
-                        // Force UTC to avoid timezone issues
-                        const utcDate = new Date(recordDate.getTime() + recordDate.getTimezoneOffset() * 60000);
-                        const formattedDate = utcDate.toLocaleString('en-US', {
+                        // Convert to IST (UTC+5:30)
+                        const istDate = new Date(recordDate.getTime());
+                        const formattedDate = istDate.toLocaleString('en-US', {
                             weekday: 'short',
                             year: 'numeric',
                             month: 'short',
@@ -544,7 +544,7 @@
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: true,
-                            timeZone: 'UTC'
+                            timeZone: 'Asia/Kolkata'  // Use Indian timezone
                         });
 
                         return `
