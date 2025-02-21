@@ -34,7 +34,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 const corsOptions = {
-    origin: "http://localhost:3000",
+    origin: "*",
     credentials: true,
 }
 // app.use(cors(corsOptions))
@@ -59,18 +59,9 @@ app.get('/register', isAuthenticated,(req, res) => {
 
 app.use("/api/v1", userRoute);
 
-//api to mark attendance
-app.get("/api",(req,res)=>{
-    res.status(200).json({
-        data: receivedData,
-        success: true
-    })
-})
 app.get("/", (req,res)=>{
-    res.status(200).json({
-        message: "Hello World"
-    })}
-)
+    res.redirect("/api/v1/users");
+})
 
 const PORT = process.env.PORT || 3000;
 let receivedData = {};
