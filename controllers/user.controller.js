@@ -103,3 +103,80 @@ export const getUserList = async (req, res) => {
         res.status(500).json({ success: false, message: "Error fetching users", error: error.message });
     }
 }
+
+export const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        if (!id) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "User ID is required" 
+            });
+        }
+
+        // Check if user exists
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found" 
+            });
+        }
+
+        // Delete the user
+        await User.findByIdAndDelete(id);
+        
+        // Send success response
+        res.status(200).json({ 
+            success: true, 
+            message: "User deleted successfully" 
+        });
+    } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || "Error deleting user"
+        });
+    }
+};
+
+export const detectFace = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No image provided"
+            });
+        }
+
+        // Read the image file and convert to base64
+        const imageBuffer = await fs.readFile(req.file.path);
+        const encodedImage = imageBuffer.toString('base64');
+
+        // Clean up the uploaded file
+        await fs.unlink(req.file.path);
+
+        // Here you would typically:
+        // 1. Send the image to your Python face recognition script
+        // 2. Get the results back
+        // 3. Update attendance if a match is found
+
+        // For now, we'll return a mock response
+        return res.json({
+            success: true,
+            message: "Face detected successfully"
+        });
+
+    } catch (error) {
+        console.error('Face detection error:', error);
+        if (req.file) {
+            await fs.unlink(req.file.path).catch(console.error);
+        }
+        res.status(500).json({
+            success: false,
+            message: "Error processing image",
+            error: error.message
+        });
+    }
+};

@@ -3,71 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User List</title>
+    <title>Attendance System</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            box-sizing: border-box;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
         .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
+
+        .header h2 {
+            margin: 0;
+            color: #34495e;
+        }
+
         .user-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            padding: 10px;
         }
+
         .user-card {
             background: white;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+
         .user-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
         }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+        }
+
         .user-image {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             object-fit: cover;
-            margin-bottom: 10px;
+            margin: 0 auto 15px;
+            display: block;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+
         .user-info {
-            margin-bottom: 15px;
+            text-align: center;
         }
+
+        .user-info h3 {
+            color: #2c3e50;
+            margin: 0 0 10px;
+            font-size: 1.4em;
+        }
+
         .add-button {
-            background-color: #4CAF50;
+            background: linear-gradient(to right, #3498db, #2ecc71);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border: none;
-            border-radius: 4px;
+            border-radius: 25px;
             cursor: pointer;
             text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
         .add-button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
+
         .attendance-info {
-            color: #666;
-            font-size: 14px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin: 8px 0;
         }
+
         .time-info {
-            color: #2196F3;
-            font-weight: bold;
+            color: #3498db;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin: 8px 0;
         }
+
         .modal {
             display: none;
             position: fixed;
@@ -77,65 +136,267 @@
             height: 100%;
             background-color: rgba(0,0,0,0.5);
             z-index: 1000;
+            backdrop-filter: blur(5px);
         }
+
         .modal-content {
             position: relative;
             background-color: white;
-            margin: 15% auto;
-            padding: 20px;
-            width: 70%;
-            max-width: 600px;
-            border-radius: 8px;
+            margin: 10% auto;
+            padding: 30px;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 15px;
             max-height: 70vh;
             overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
+
         .close {
             position: absolute;
-            right: 20px;
-            top: 10px;
+            right: 25px;
+            top: 15px;
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
-            color: #666;
+            color: #95a5a6;
+            transition: color 0.3s ease;
         }
+
+        .close:hover {
+            color: #34495e;
+        }
+
         .attendance-list {
-            margin-top: 20px;
+            margin-top: 25px;
         }
+
         .attendance-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            padding: 15px;
+            border-bottom: 1px solid #ecf0f1;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background-color 0.3s ease;
         }
+
+        .attendance-item:hover {
+            background-color: #f8f9fa;
+        }
+
         .attendance-item:last-child {
             border-bottom: none;
         }
+
         .status-badge {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         .status-badge.present {
-            background-color: #4CAF50;
+            background-color: #2ecc71;
             color: white;
+        }
+
+        .status-badge.absent {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .eid-badge {
+            background-color: #f1f2f6;
+            color: #2c3e50;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin: 5px 0;
+            display: inline-block;
+        }
+
+        .user-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #ff6b81;
+            transform: translateY(-2px);
+        }
+
+        .view-attendance-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .view-attendance-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1100;
+        }
+
+        .confirm-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .confirm-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .confirm-yes {
+            background: #ff4757;
+            color: white;
+        }
+
+        .confirm-no {
+            background: #95a5a6;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .user-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+
+            .modal-content {
+                width: 90%;
+                margin: 5% auto;
+            }
+        }
+
+        .search-container {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            max-width: 300px;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+            background: white;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .live-btn {
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .live-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(52,152,219,0.2);
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <h1>Face Recognition Attendance System</h1>
         <div class="header">
-            <h1>User List</h1>
-            <a href="/register" class="add-button">Add New User</a>
+            <h2>User List</h2>
+            <div class="header-buttons">
+                <a href="/api/v1/live-attendance" class="live-btn">Live Attendance</a>
+                <a href="/register" class="add-button">+ Add New User</a>
+            </div>
+        </div>
+        <div class="search-container">
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="search-input" 
+                placeholder="Search by Employee ID..."
+                onkeyup="searchUsers()"
+            >
         </div>
         <div class="user-grid">
             <% users.forEach(user => { %>
-                <div class="user-card" onclick="showAttendance('<%= user.name %>', <%= JSON.stringify(user.attendance) %>)">
+                <div class="user-card">
                     <img src="data:image/jpeg;base64,<%= user.encodedImage %>" alt="<%= user.name %>" class="user-image">
                     <div class="user-info">
                         <h3><%= user.name %></h3>
-                        <p>Employee ID: <%= user.eid %></p>
+                        <div class="eid-badge">ID: <%= user.eid %></div>
                         <p class="attendance-info">Total Attendance: <%= user.attendance.length %></p>
                         <% if (user.attendance && user.attendance.length > 0) { %>
                             <p class="time-info">
@@ -150,34 +411,51 @@
                         <% } else { %>
                             <p class="time-info">No attendance records</p>
                         <% } %>
-                        <p>Created: <%= new Date(user.createdAt).toLocaleDateString() %></p>
+                        <div class="user-actions">
+                            <button class="view-attendance-btn" onclick="event.stopPropagation(); showAttendance(<%= user.name %>, <%= JSON.stringify(user.attendance) %>)">
+                                View Attendance
+                            </button>
+                            <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(<%= user._id %>, <%= user.name %>)">
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             <% }); %>
         </div>
     </div>
 
-    <!-- Modal for attendance details -->
     <div id="attendanceModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle"></h2>
+            <h2 id="modalTitle" style="color: #2c3e50; margin-top: 0;"></h2>
             <div id="attendanceList" class="attendance-list"></div>
         </div>
     </div>
 
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-content">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete <span id="deleteUserName"></span>?</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-no" onclick="closeConfirmModal()">Cancel</button>
+                <button class="confirm-btn confirm-yes" onclick="deleteUser()">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let deleteUserId = '';
+
         function showAttendance(userName, attendance) {
             const modal = document.getElementById('attendanceModal');
             const modalTitle = document.getElementById('modalTitle');
             const attendanceList = document.getElementById('attendanceList');
 
-            modalTitle.textContent = `${userName}'s Attendance History`;
+            modalTitle.textContent = ${userName}'s Attendance History;
             
-            // Sort attendance by date (newest first)
             attendance.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            // Create attendance list HTML
             const attendanceHTML = attendance.map(record => `
                 <div class="attendance-item">
                     <div>
@@ -194,7 +472,7 @@
                 </div>
             `).join('');
 
-            attendanceList.innerHTML = attendance.length ? attendanceHTML : '<p>No attendance records found.</p>';
+            attendanceList.innerHTML = attendance.length ? attendanceHTML : '<p style="text-align: center; color: #7f8c8d;">No attendance records found.</p>';
             modal.style.display = 'block';
         }
 
@@ -202,13 +480,100 @@
             document.getElementById('attendanceModal').style.display = 'none';
         }
 
-        // Close modal when clicking outside
+        function confirmDelete(userId, userName) {
+            deleteUserId = userId;
+            document.getElementById('deleteUserName').textContent = userName;
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+
+        function deleteUser() {
+            if (!deleteUserId) return;
+            
+            fetch(/api/v1/delete-user/${deleteUserId}, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    closeConfirmModal();
+                    window.location.reload();
+                } else {
+                    throw new Error(data.message || 'Error deleting user');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message || 'Error deleting user');
+                closeConfirmModal();
+            });
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            deleteUserId = '';
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close confirm modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('attendanceModal');
+            const modal = document.getElementById('confirmModal');
             if (event.target == modal) {
-                modal.style.display = 'none';
+                closeConfirmModal();
             }
         }
+
+        function searchUsers() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            const userCards = document.querySelectorAll('.user-card');
+            let hasResults = false;
+
+            userCards.forEach(card => {
+                const eid = card.querySelector('.eid-badge').textContent.toLowerCase();
+                if (eid.includes(searchValue)) {
+                    card.style.display = '';
+                    hasResults = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide no results message
+            let noResultsDiv = document.querySelector('.no-results');
+            if (!hasResults) {
+                if (!noResultsDiv) {
+                    noResultsDiv = document.createElement('div');
+                    noResultsDiv.className = 'no-results';
+                    noResultsDiv.innerHTML = 'No users found with this Employee ID';
+                    document.querySelector('.user-grid').insertAdjacentElement('beforebegin', noResultsDiv);
+                }
+                noResultsDiv.style.display = 'block';
+            } else if (noResultsDiv) {
+                noResultsDiv.style.display = 'none';
+            }
+        }
+
+        // Add this to clear search when Escape is pressed
+        document.getElementById('searchInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                this.value = '';
+                searchUsers();
+                this.blur();
+            }
+        });
     </script>
 </body>
 </html>

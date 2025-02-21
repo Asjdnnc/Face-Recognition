@@ -3,75 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Registration</title>
+    <title>User Registration - Attendance System</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .form-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
             box-sizing: border-box;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
-        button:hover {
-            background-color: #45a049;
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
         }
-        .preview {
+
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-header h2 {
+            color: #34495e;
+            margin: 0;
+        }
+
+        .form-header p {
+            color: #7f8c8d;
             margin-top: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        .file-input-container {
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background-color: #2980b9;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .preview {
             max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #34495e;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            color: #2c3e50;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <h2>User Registration</h2>
-        <form action="http://localhost:3000/api/v1/create-user" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
+    <div class="container">
+        <h1>Face Recognition Attendance System</h1>
+        <div class="form-container">
+            <div class="form-header">
+                <h2>New User Registration</h2>
+                <p>Please fill in the details below to register a new user</p>
             </div>
-            
-            <div class="form-group">
-                <label for="eid">Employee ID:</label>
-                <input type="text" id="eid" name="eid" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="image">Profile Image:</label>
-                <input type="file" id="image" name="image" accept="image/*" required onchange="previewImage(event)">
-                <img id="preview" class="preview" style="display: none;">
-            </div>
-            
-            <button type="submit">Register</button>
-        </form>
+            <form action="/api/v1/create-user" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter full name">
+                    <div class="error-message" id="name-error">Please enter a valid name</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eid">Employee ID</label>
+                    <input type="text" id="eid" name="eid" required placeholder="Enter employee ID">
+                    <div class="error-message" id="eid-error">Please enter a valid employee ID</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Profile Image</label>
+                    <div class="file-input-container">
+                        <label class="file-input-label" for="image">
+                            Choose Image
+                        </label>
+                        <input type="file" id="image" name="image" accept="image/*" required onchange="previewImage(event)">
+                    </div>
+                    <div class="preview-container">
+                        <img id="preview" class="preview" alt="Preview">
+                    </div>
+                </div>
+                
+                <button type="submit">Register User</button>
+            </form>
+            <a href="/api/v1/users" class="back-link">← Back to User List</a>
+        </div>
     </div>
 
     <script>
@@ -89,6 +203,30 @@
                 reader.readAsDataURL(file);
             }
         }
+
+        // Basic form validation
+        const form = document.querySelector('form');
+        form.onsubmit = function(e) {
+            let isValid = true;
+            const name = document.getElementById('name').value.trim();
+            const eid = document.getElementById('eid').value.trim();
+            
+            if (name.length < 2) {
+                document.getElementById('name-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('name-error').style.display = 'none';
+            }
+            
+            if (eid.length < 2) {
+                document.getElementById('eid-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('eid-error').style.display = 'none';
+            }
+
+            return isValid;
+        }
     </script>
 </body>
-</html> 
+</html>
