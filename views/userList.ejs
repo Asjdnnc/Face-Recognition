@@ -539,13 +539,15 @@
                         const timestamp = recordDate.getTime();
                         // Create a date string in ISO format
                         const dateStr = new Date(timestamp).toISOString();
-                        const formattedDate = new Date(dateStr).toLocaleString('en-US', {
+                        const formattedDate = new Date(timestamp).toLocaleString('en-IN', {
+                            timeZone: 'Asia/Kolkata',
                             weekday: 'short',
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
+                            second: '2-digit',
                             hour12: true
                         });
 
