@@ -369,6 +369,40 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(52,152,219,0.2);
         }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+            background: #dc2626;
+        }
+
+        .logout-btn i {
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .header-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .logout-btn {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -379,6 +413,10 @@
             <div class="header-buttons">
                 <a href="/api/v1/live-attendance" class="live-btn">Live Attendance</a>
                 <a href="/register" class="add-button">+ Add New User</a>
+                <a href="/api/v1/logout" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
             </div>
         </div>
         <div class="search-container">

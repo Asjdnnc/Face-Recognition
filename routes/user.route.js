@@ -1,7 +1,7 @@
 import express from "express"
 import multer from "multer"
 import { createUser, fetchUsers, receivePythonData, updateAttendance,getUserList, deleteUser, detectFace } from "../controllers/user.controller.js"
-import { login } from "../controllers/admin.controller.js";
+import { login, logout } from "../controllers/admin.controller.js";
 import isAuthenticated from "../middlewares/auth.middleware.js";
 
 const upload = multer({ dest: "uploads/" });
@@ -27,4 +27,7 @@ router.route('/live-attendance').get(isAuthenticated,(req, res) => {
 });
 
 router.route('/detect-face').post(upload.single('image'), detectFace);
+
+router.route('/logout').get(logout);
+
 export default router
