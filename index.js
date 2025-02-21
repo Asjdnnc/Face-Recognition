@@ -9,6 +9,7 @@ import connectDB from "./utils/db.js"
 import userRoute from "./routes/user.route.js"
 import { User } from "./models/user.model.js"
 import fs from 'fs/promises'
+import isAuthenticated from "./middlewares/auth.middleware.js"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,7 +53,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 
 // Routes
-app.get('/register', (req, res) => {
+app.get('/register', isAuthenticated,(req, res) => {
     res.render('form');
 });
 
