@@ -122,9 +122,13 @@
 
         .time-info {
             color: #3498db;
-            font-weight: 600;
+            font-weight: 500;
             font-size: 0.9em;
             margin: 8px 0;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            display: inline-block;
         }
 
         .modal {
@@ -186,6 +190,11 @@
 
         .attendance-item:last-child {
             border-bottom: none;
+        }
+
+        .attendance-item div {
+            color: #2c3e50;
+            font-weight: 500;
         }
 
         .status-badge {
@@ -438,13 +447,27 @@
                         <p class="attendance-info">Total Attendance: <%= user.attendance.length %></p>
                         <% if (user.attendance && user.attendance.length > 0) { %>
                             <p class="time-info">
-                                Last Attendance: <%= new Date(user.attendance[user.attendance.length - 1].date).toLocaleString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                }) %>
+                                Last Attendance: 
+                                <% 
+                                    const lastAttendance = user.attendance[user.attendance.length - 1];
+                                    const attendanceDate = new Date(lastAttendance.date);
+                                    
+                                    if (!isNaN(attendanceDate)) {
+                                        const options = {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: true
+                                        };
+                                        
+                                        const formattedDate = attendanceDate.toLocaleString('en-US', options);
+                                %>
+                                    <%= formattedDate %>
+                                <% } else { %>
+                                    Invalid Date
+                                <% } %>
                             </p>
                         <% } else { %>
                             <p class="time-info">No attendance records</p>
@@ -492,25 +515,35 @@
 
             modalTitle.textContent = `${userName}'s Attendance History`;
             
-            attendance.sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (attendance && attendance.length > 0) {
+                attendance.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            const attendanceHTML = attendance.map(record => `
-                <div class="attendance-item">
-                    <div>
-                        ${new Date(record.date).toLocaleString('en-US', {
+                const attendanceHTML = attendance.map(record => {
+                    const recordDate = new Date(record.date);
+                    const formattedDate = !isNaN(recordDate) ? 
+                        recordDate.toLocaleString('en-US', {
                             weekday: 'short',
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
-                            minute: '2-digit'
-                        })}
-                    </div>
-                    <span class="status-badge ${record.status.toLowerCase()}">${record.status}</span>
-                </div>
-            `).join('');
+                            minute: '2-digit',
+                            hour12: true
+                        }) : 'Invalid Date';
 
-            attendanceList.innerHTML = attendance.length ? attendanceHTML : '<p style="text-align: center; color: #7f8c8d;">No attendance records found.</p>';
+                    return `
+                        <div class="attendance-item">
+                            <div>${formattedDate}</div>
+                            <span class="status-badge ${record.status.toLowerCase()}">${record.status}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                attendanceList.innerHTML = attendanceHTML;
+            } else {
+                attendanceList.innerHTML = '<p style="text-align: center; color: #7f8c8d;">No attendance records found.</p>';
+            }
+            
             modal.style.display = 'block';
         }
 
