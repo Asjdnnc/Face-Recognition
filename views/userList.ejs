@@ -449,25 +449,34 @@
                             <p class="time-info">
                                 Last Attendance: 
                                 <% 
-                                    const lastAttendance = user.attendance[user.attendance.length - 1];
-                                    const attendanceDate = new Date(lastAttendance.date);
-                                    
-                                    if (!isNaN(attendanceDate)) {
-                                        const options = {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: true
-                                        };
+                                    try {
+                                        const lastAttendance = user.attendance[user.attendance.length - 1];
+                                        const attendanceDate = new Date(lastAttendance.date);
                                         
-                                        const formattedDate = attendanceDate.toLocaleString('en-US', options);
+                                        if (!isNaN(attendanceDate)) {
+                                            // Force UTC to avoid timezone issues
+                                            const utcDate = new Date(attendanceDate.getTime() + attendanceDate.getTimezoneOffset() * 60000);
+                                            const options = {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true,
+                                                timeZone: 'UTC'
+                                            };
+                                            
+                                            const formattedDate = utcDate.toLocaleString('en-US', options);
                                 %>
                                     <%= formattedDate %>
-                                <% } else { %>
-                                    Invalid Date
-                                <% } %>
+                                <% 
+                                        } else {
+                                            %>Invalid Date<%
+                                        }
+                                    } catch (error) {
+                                        %>Error displaying date<%
+                                    }
+                                %>
                             </p>
                         <% } else { %>
                             <p class="time-info">No attendance records</p>
@@ -519,25 +528,34 @@
                 attendance.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 const attendanceHTML = attendance.map(record => {
-                    const recordDate = new Date(record.date);
-                    if (isNaN(recordDate)) {
-                        return '<div class="attendance-item"><div>Invalid Date</div></div>';
+                    try {
+                        const recordDate = new Date(record.date);
+                        if (isNaN(recordDate)) {
+                            return '<div class="attendance-item"><div>Invalid Date</div></div>';
+                        }
+                        
+                        // Force UTC to avoid timezone issues
+                        const utcDate = new Date(recordDate.getTime() + recordDate.getTimezoneOffset() * 60000);
+                        const formattedDate = utcDate.toLocaleString('en-US', {
+                            weekday: 'short',
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                            timeZone: 'UTC'
+                        });
+
+                        return `
+                            <div class="attendance-item">
+                                <div>${formattedDate}</div>
+                                <span class="status-badge ${record.status.toLowerCase()}">${record.status}</span>
+                            </div>
+                        `;
+                    } catch (error) {
+                        return '<div class="attendance-item"><div>Error displaying date</div></div>';
                     }
-                    
-                    return `
-                        <div class="attendance-item">
-                            <div>${recordDate.toLocaleString('en-US', {
-                                weekday: 'short',
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: true
-                            })}</div>
-                            <span class="status-badge ${record.status.toLowerCase()}">${record.status}</span>
-                        </div>
-                    `;
                 }).join('');
 
                 attendanceList.innerHTML = attendanceHTML;
