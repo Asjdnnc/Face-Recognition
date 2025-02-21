@@ -454,19 +454,20 @@
                                         const attendanceDate = new Date(lastAttendance.date);
                                         
                                         if (!isNaN(attendanceDate)) {
-                                            // Convert to IST (UTC+5:30)
-                                            const istDate = new Date(attendanceDate.getTime());
+                                            // Store the original timestamp
+                                            const timestamp = attendanceDate.getTime();
+                                            // Create a date string in ISO format
+                                            const dateStr = new Date(timestamp).toISOString();
                                             const options = {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: 'numeric',
                                                 hour: '2-digit',
                                                 minute: '2-digit',
-                                                hour12: true,
-                                                timeZone: 'Asia/Kolkata'  // Use Indian timezone
+                                                hour12: true
                                             };
                                             
-                                            const formattedDate = istDate.toLocaleString('en-US', options);
+                                            const formattedDate = new Date(dateStr).toLocaleString('en-US', options);
                                 %>
                                     <%= formattedDate %>
                                 <% 
@@ -482,10 +483,10 @@
                             <p class="time-info">No attendance records</p>
                         <% } %>
                         <div class="user-actions">
-                            <button class="view-attendance-btn" onclick="event.stopPropagation(); showAttendance('<%= user.name %>', <%= JSON.stringify(user.attendance) %>)">
+                            <button class="view-attendance-btn" onclick='event.stopPropagation(); showAttendance("<%= user.name.replace(/"/g, '&quot;') %>", <%= JSON.stringify(user.attendance).replace(/'/g, "\\'") %>)'>
                                 View Attendance
                             </button>
-                            <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete('<%= user._id %>', '<%= user.name %>')">
+                            <button class="delete-btn" onclick='event.stopPropagation(); confirmDelete("<%= user._id %>", "<%= user.name.replace(/"/g, '&quot;') %>")'>
                                 Delete
                             </button>
                         </div>
@@ -534,17 +535,18 @@
                             return '<div class="attendance-item"><div>Invalid Date</div></div>';
                         }
                         
-                        // Convert to IST (UTC+5:30)
-                        const istDate = new Date(recordDate.getTime());
-                        const formattedDate = istDate.toLocaleString('en-US', {
+                        // Store the original timestamp
+                        const timestamp = recordDate.getTime();
+                        // Create a date string in ISO format
+                        const dateStr = new Date(timestamp).toISOString();
+                        const formattedDate = new Date(dateStr).toLocaleString('en-US', {
                             weekday: 'short',
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                            hour12: true,
-                            timeZone: 'Asia/Kolkata'  // Use Indian timezone
+                            hour12: true
                         });
 
                         return `
