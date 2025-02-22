@@ -449,35 +449,17 @@
                             <p class="time-info">
                                 Last Attendance: 
                                 <% 
-                                    try {
-                                        const lastAttendance = user.attendance[user.attendance.length - 1];
-                                        const attendanceDate = new Date(lastAttendance.date);
-                                        
-                                        if (!isNaN(attendanceDate)) {
-                                            // Store the original timestamp
-                                            const timestamp = attendanceDate.getTime();
-                                            // Create a date string in ISO format
-                                            const dateStr = new Date(timestamp).toISOString();
-                                            const options = {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                hour12: true
-                                            };
-                                            
-                                            const formattedDate = new Date(dateStr).toLocaleString('en-IN', options);
-                                %>
+                                    const lastAttendance = user.attendance[user.attendance.length - 1].date;
+                                    const date = new Date(lastAttendance);
+                                    const formattedDate = date.toLocaleString('en-IN', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    });
+                                    %>
                                     <%= formattedDate %>
-                                <% 
-                                        } else {
-                                            %>Invalid Date<%
-                                        }
-                                    } catch (error) {
-                                        %>Error displaying date<%
-                                    }
-                                %>
                             </p>
                         <% } else { %>
                             <p class="time-info">No attendance records</p>
