@@ -452,7 +452,7 @@
                                     const lastAttendance = user.attendance[user.attendance.length - 1].date;
                                     // Convert to IST by explicitly adding offset
                                     const date = new Date(lastAttendance);
-                                    const istTime = new Date(date.getTime();
+                                    const istTime = new Date(date.getTime());
                                     const formattedDate = istTime.toLocaleString('en-IN', {
                                         timeZone: 'Asia/Kolkata',
                                         year: 'numeric',
