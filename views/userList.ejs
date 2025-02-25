@@ -450,14 +450,18 @@
                                 Last Attendance: 
                                 <% 
                                     const lastAttendance = user.attendance[user.attendance.length - 1].date;
+                                    // Convert to IST by explicitly adding offset
                                     const date = new Date(lastAttendance);
-                                    const formattedDate = date.toLocaleString('en-IN', {
+                                    const istTime = new Date(date.getTime() + (5.5 * 60 * 60 * 1000)); // Add 5:30 hours for IST
+                                    const formattedDate = istTime.toLocaleString('en-IN', {
+                                        timeZone: 'Asia/Kolkata',
                                         year: 'numeric',
                                         month: 'short',
                                         day: 'numeric',
                                         hour: '2-digit',
                                         minute: '2-digit',
-                                    });
+                                        hour12: true
+                                    });
                                     %>
                                     <%= formattedDate %>
                             </p>
