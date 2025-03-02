@@ -6,7 +6,7 @@ import face_recognition
 import time
 
 # API to fetch user data 
-API_FETCH_URL = "http://localhost:3000/api/v1/fetch-data"
+API_FETCH_URL = "https://face-recognition-kshe.onrender.com/api/v1/fetch-data"
 
 def fetch_users():
     """
