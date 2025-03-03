@@ -4,7 +4,10 @@ import face_recognition
 import numpy as np
 import time
 import logging
-import winsound  # For beep sound on Windows
+import subprocess
+ # Play a system sound
+
+#import winsound  # For beep sound on Windows
 
 from userfetch import fetch_users   # Fetch user details and encodings.
 from update import update_attendance  # Update attendance function.
@@ -107,7 +110,7 @@ def check_attendance(user_db, tolerance=0.5):
                         "start_time": time.time()  # Start time for monitoring.
                     }
                 cv2.putText(frame, f"Pending: {best_match_data['name']} ({candidate_data['match_count']}/{REQUIRED_MATCHES})", 
-                            (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+                            (50, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 0), 2)
 
                 if candidate_data["match_count"] >= REQUIRED_MATCHES:
                     # Use face_recognition to get face location.
@@ -133,18 +136,23 @@ def check_attendance(user_db, tolerance=0.5):
                     # After CHECK_INTERVAL seconds, decide on liveness.
                     if time.time() - candidate_data["start_time"] > CHECK_INTERVAL:
                         if candidate_data["blink_count"] >= BLINKS_REQUIRED:
-                            cv2.putText(frame, f"Welcome, {best_match_data['name']}!", (50, 80),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                            cv2.putText(frame, f"Welcome, {best_match_data['name']}!", (50, 140),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
                             logging.info(f"Attendance marked for {best_match_data['name']} (ID: {candidate})")
                             attended_users.add(candidate)
                             update_attendance(candidate, attendance=True)
                             # Play beep sound.
-                            winsound.Beep(1000, 300)
-                            winsound.Beep(1000, 300)
+                            #winsound.Beep(1000, 300)
+                            #winsound.Beep(1000, 300)
+                            play_sound()
+                            play_sound()
+                            play_sound()
+                            play_sound()
+                            play_sound()
                             consecutive_spoof_count = 0  # Reset spoof counter on success.
                         else:
-                            cv2.putText(frame, "Spoofing Detected", (50, 80),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                            cv2.putText(frame, "Spoofing Detected", (50, 120),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
                             logging.info("Spoofing detected: Fake Face")
                             consecutive_spoof_count += 1
                             if consecutive_spoof_count >= SPOOF_THRESHOLD:
@@ -157,12 +165,12 @@ def check_attendance(user_db, tolerance=0.5):
                 candidate = None
                 candidate_data = None
                 cv2.putText(frame, "Face not recognized", (50, 50),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
         else:
             candidate = None
             candidate_data = None
             cv2.putText(frame, "No face detected", (50, 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
 
         cv2.imshow("Attendance System", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -170,6 +178,10 @@ def check_attendance(user_db, tolerance=0.5):
 
     cap.release()
     cv2.destroyAllWindows()
+
+def play_sound():
+    subprocess.Popen(["afplay", "/System/Library/Sounds/Ping.aiff"])
+
 
 if __name__ == '__main__':
     users = fetch_users()

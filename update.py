@@ -1,7 +1,9 @@
 import requests
 
 # API endpoint for attendance updates.
-API_URL2 = "https://face-recognition-kshe.onrender.com/api/v1/update-attendance"
+#API_URL2 = "https://face-recognition-kshe.onrender.com/api/v1/update-attendance"
+#aditya
+API_URL2 = "https://face-recognition-1nxs.onrender.com/api/v1/update-attendance"
 
 def update_attendance(user_id, attendance=True):
     """
@@ -20,7 +22,7 @@ def update_attendance(user_id, attendance=True):
     
     try:
         response = requests.post(API_URL2, json=payload)
-        print (payload)
+        #print (payload)
         if response.status_code == 200:
             print(f"Attendance updated for user {user_id}: attendance = {attendance}")
         else:
