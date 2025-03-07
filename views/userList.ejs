@@ -404,52 +404,108 @@
         }
 
         .sort-buttons {
-        display: flex;
-        gap: 10px;
-    }
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
 
-    .sort-btn {
-        background: #f8f9fa;
-        color: #2c3e50;
-        border: 2px solid #e9ecef;
-        padding: 8px 15px;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 0.9em;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
+        .sort-btn {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 2px solid #e9ecef;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-    .sort-btn:hover {
-        background: #e9ecef;
-        transform: translateY(-1px);
-    }
+        .sort-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
 
-    .sort-btn.active {
-        background: #3498db;
-        color: white;
-        border-color: #3498db;
-    }
+        .sort-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
 
         @media (max-width: 768px) {
             .search-container {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .sort-buttons {
-            margin-top: 10px;
-        }
-            .header-buttons {
                 flex-direction: column;
-                width: 100%;
+                align-items: stretch;
             }
 
-            .logout-btn {
-                justify-content: center;
+            .sort-buttons {
+                margin-top: 10px;
+                flex-wrap: wrap;
             }
+        }
+
+        .list-view {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background: #f8f9fa;
+        }
+
+        .list-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .list-info {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .attendance-info {
+            text-align: right;
+            margin-left: 20px;
+        }
+
+        .list-attendance {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+
+        .list-last-attendance {
+            color: #3498db;
+            font-size: 0.85em;
         }
     </style>
 </head>
@@ -475,13 +531,15 @@
                 placeholder="Search by Employee ID..."
                 onkeyup="searchUsers()"
             >
-        </div>
             <div class="sort-buttons">
                 <button class="sort-btn" onclick="sortUsers('eid',false)">
                     <i class="fas fa-sort"></i> Sort by EID
                 </button>
                 <button class="sort-btn attendance" onclick="sortUsers('attendance',true)">
                     <i class="fas fa-arrow-down"></i> Sort by Attendance
+                </button>
+                <button class="sort-btn" onclick="toggleListView()">
+                    <i class="fas fa-list"></i> List View
                 </button>
             </div>
         </div>
@@ -492,7 +550,7 @@
                     <div class="user-info">
                         <h3><%= user.name %></h3>
                         <div class="eid-badge">ID: <%= user.eid %></div>
-                        <p class="attendance-info">Total Attendance: <%= user.attendance.length %></p>
+                        <p class="attendance-info" style="text-align: center;">Total Attendance: <%= user.attendance.length %></p>
                         <% if (user.attendance && user.attendance.length > 0) { %>
                             <p class="time-info">
                                 Last Attendance: 
@@ -547,6 +605,41 @@
                 <button class="confirm-btn confirm-yes" onclick="deleteUser()">Delete</button>
             </div>
         </div>
+    </div>
+
+    <div class="list-view" id="listView">
+        <% users.forEach(user => { %>
+            <div class="list-item">
+                <img src="data:image/jpeg;base64,<%= user.encodedImage %>" alt="<%= user.name %>" class="list-photo">
+                <div class="list-info">
+                    <div class="list-name"><%= user.name %></div>
+                    <div class="attendance-info">
+                        <div class="list-attendance">Total: <%= user.attendance.length %></div>
+                        <% if (user.attendance && user.attendance.length > 0) { %>
+                            <div class="list-last-attendance">
+                                <% 
+                                    const lastAttendance = user.attendance[user.attendance.length - 1].date;
+                                    const date = new Date(lastAttendance);
+                                    const istTime = new Date(date.getTime());
+                                    const formattedDate = istTime.toLocaleString('en-IN', {
+                                        timeZone: 'Asia/Kolkata',
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: true
+                                    });
+                                %>
+                                Last: <%= formattedDate %>
+                            </div>
+                        <% } else { %>
+                            <div class="list-last-attendance">No records</div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        <% }); %>
     </div>
 
     <script>
@@ -746,6 +839,19 @@
                 this.blur();
             }
         });
+
+        function toggleListView() {
+            const gridView = document.querySelector('.user-grid');
+            const listView = document.getElementById('listView');
+            
+            if (listView.style.display === 'none' || !listView.style.display) {
+                gridView.style.display = 'none';
+                listView.style.display = 'block';
+            } else {
+                gridView.style.display = 'grid';
+                listView.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
