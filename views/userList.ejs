@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance System</title>
@@ -402,7 +403,45 @@
             font-size: 1.1em;
         }
 
+        .sort-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .sort-btn {
+        background: #f8f9fa;
+        color: #2c3e50;
+        border: 2px solid #e9ecef;
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .sort-btn:hover {
+        background: #e9ecef;
+        transform: translateY(-1px);
+    }
+
+    .sort-btn.active {
+        background: #3498db;
+        color: white;
+        border-color: #3498db;
+    }
+
         @media (max-width: 768px) {
+            .search-container {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .sort-buttons {
+            margin-top: 10px;
+        }
             .header-buttons {
                 flex-direction: column;
                 width: 100%;
@@ -436,6 +475,15 @@
                 placeholder="Search by Employee ID..."
                 onkeyup="searchUsers()"
             >
+        </div>
+            <div class="sort-buttons">
+                <button class="sort-btn" onclick="sortUsers('eid',false)">
+                    <i class="fas fa-sort"></i> Sort by EID
+                </button>
+                <button class="sort-btn attendance" onclick="sortUsers('attendance',true)">
+                    <i class="fas fa-arrow-down"></i> Sort by Attendance
+                </button>
+            </div>
         </div>
         <div class="user-grid">
             <% users.forEach(user => { %>
@@ -645,6 +693,50 @@
                 noResultsDiv.style.display = 'none';
             }
         }
+
+    let currentSort = '';
+    let sortDirection = 1;
+
+    function sortUsers(criteria, ascending = true) {
+        const userCards = Array.from(document.querySelectorAll('.user-card'));
+        const userGrid = document.querySelector('.user-grid');
+        
+        // Toggle sort direction if clicking the same criteria
+        if (currentSort === criteria) {
+            sortDirection *= -1;
+        } else {
+            sortDirection = 1;
+            currentSort = criteria;
+        }
+        if(ascending){
+            const attendanceBtn = document.querySelector('.attendance').innerHTML;
+            attendanceBtn.includes('up') ? document.querySelector('.attendance').innerHTML = attendanceBtn.replace('up', 'down') : document.querySelector('.attendance').innerHTML = attendanceBtn.replace('down', 'up');
+        }
+        // Update button states
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.toLowerCase().includes(criteria)) {
+                btn.classList.add('active');
+            }
+        });
+
+        userCards.sort((a, b) => {
+            if (criteria === 'eid') {
+                const eidA = a.querySelector('.eid-badge').textContent.match(/\d+/)[0];
+                const eidB = b.querySelector('.eid-badge').textContent.match(/\d+/)[0];
+                return (parseInt(eidA) - parseInt(eidB)) * sortDirection;
+            } else if (criteria === 'attendance') {
+                const attendanceA = parseInt(a.querySelector('.attendance-info').textContent.match(/\d+/)[0]);
+                const attendanceB = parseInt(b.querySelector('.attendance-info').textContent.match(/\d+/)[0]);
+                return (attendanceB - attendanceA) * sortDirection;
+            }
+            return 0;
+        });
+
+        // Clear and re-append sorted cards
+        userGrid.innerHTML = '';
+        userCards.forEach(card => userGrid.appendChild(card));
+    }
 
         // Add this to clear search when Escape is pressed
         document.getElementById('searchInput').addEventListener('keydown', function(event) {

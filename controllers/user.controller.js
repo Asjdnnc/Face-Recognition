@@ -84,6 +84,12 @@ export const updateAttendance = async (req, res) => {
         }
 
         if (isMatched) {
+            const prevDate = user.attendance[user.attendance.length - 1]?.date;
+            if(prevDate && prevDate.toDateString() === new Date().toDateString()) {
+                return res.json({ 
+                    success: false, message: "Attendance already marked for today" 
+                });
+            }
             user.attendance.push({ date: new Date(), status: "Present" });
             await user.save();
             return res.json({ success: true, message: "Attendance marked" });
